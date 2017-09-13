@@ -1,0 +1,220 @@
+<html>
+    <head>
+         <!--pannel scripts&cdd-->
+        <script src="./public/jquery-3.2.1.min.js"></script> 
+        <script src="./public/vue.min.js"></script>            
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel='stylesheet' href='./public/libs/bootstrap-3.3.7-dist/css/bootstrap.min.css' />
+        <link rel='stylesheet' href='./public/libs/semantic/dist/semantic.min.css' />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="./public/style.css">
+        <link rel="stylesheet" href="./public/main.css">        
+        <!--cube 3d scripts&css-->
+        <link rel="stylesheet" href="./public/css/experiment.css" />          
+        
+    </head>
+    <body>
+        <div>
+            <div class="cube-area">
+                <div id="experiment">
+                    <div id="cube">
+                        <div class="face one" >
+
+                        </div>
+                        <div class="face two">
+                            <div id="chess_game">                                
+                                    <div class="square" id="1-1" v-on:click="newStep"></div>
+                                    <div class="square" id="1-2" v-on:click="newStep"></div>
+                                    <div class="square" id="1-3" v-on:click="newStep"></div>
+                                    <div class="square" id="2-1" v-on:click="newStep"></div>
+                                    <div class="square" id="2-2" v-on:click="newStep"></div>
+                                    <div class="square" id="2-3" v-on:click="newStep"></div>
+                                    <div class="square" id="3-1" v-on:click="newStep"></div>
+                                   <div class="square" id="3-2" v-on:click="newStep"></div>
+                                    <div class="square" id="3-3" v-on:click="newStep"></div>
+                                </div>
+                            <div>
+                        </div>
+                        </div>
+                        <div class="face three">
+                        </div>
+                        <div class="face four">
+                        </div>
+                        <div class="face five">
+                        </div>
+                        <div class="face six">
+                        </div>
+                    </div>
+                </div>
+                        
+            </div>
+            <div class="panel-heading">
+                    <h3 class="panel-title text-center">Talking Wall😁</h3>
+            </div>        
+            <div class ="panel-body" id="all_students_datas">
+                <div id="columns">
+                    <div class="words-pannel" v-for="item in all_students_data">
+                        <figure>
+                            <div class="students_words">
+                                {{item.words}}
+                            </div>
+                            <hr>
+                            <div class="name_and_avastar">
+                                {{ item.name }}
+                                <img class="ui avatar image" v-bind:src="item.avatar" alt="..."> 
+                            </div>
+                        </figure>
+                    </div>
+                </div>                      
+            </div>
+        </div>
+            <!--JS代码部分-->
+            <script src="./public/js/experiment.js"></script>
+            <!--<script src="./public/js/chess.js"></script>--> 
+            <script>
+                    //axios部分
+                    var all_students_data=Array()
+                    axios.get('https://js.xinshengdaxue.com/api/v1/learnJS/course/1/words')
+                        .then(function (response) {
+                            main_display(response.data.words);
+                            
+                        })                      
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                    
+                    //vue部分
+                    function main_display(all_data)
+                    {
+                        
+                        var all_students_datas=new Vue({
+                            el:'#all_students_datas',
+                            data:{
+                                all_students_data:all_data,
+                                cube_students:all_data.slice(0,5)
+                                //studentA_avatar:"https://ws3.sinaimg.cn/large/006tNc79ly1fig6fhvtbvj30zk0zkn4f.jpg"
+                            },
+                            methods:{
+                                /*
+                                getInfo(){
+                                
+                                studentA_avatar=all_students_data;
+                                }
+                                */
+                            }
+                        })
+
+                        var chess_game=new Vue({
+                            el:"#chess_game",
+                            data:{
+                                game_position:[[0,0,0,],[0,0,0,],[0,0,0]],
+                                game_end:false
+                            },
+                            methods:{
+                                newStep: function(event) {
+                                    var i = event.currentTarget.id.split('-')[0]-1;
+                                    var j = event.target.id.split('-')[1]-1;
+                                    if(chess_game.game_position[i][j]!=0){
+                                        alert('此处不能下棋');
+                                    }else{
+                                        if(chess_game.game_end==false){
+                                            chess_game.game_position[i][j]=1;
+                                            chess_game.redraw(chess_game.whose_winner);
+                                        }
+                                        if(chess_game.game_end==false){
+                                            chess_game.computer_step();
+                                            chess_game.redraw(chess_game.whose_winner);
+                                        }   
+
+                                    }
+
+                                },
+                                redraw:function(callback){
+                                    for(var i=1;i<4;i++){
+		                                for(var j=1;j<4;j++){
+			                                var  a_man= document.getElementById(i+'-'+j);
+			                                switch (chess_game.game_position[i-1][j-1])
+			                                {
+				                                case 1:
+					                                a_man.innerHTML = 'O';
+					                                a_man.style.color = 'lightblue';
+					                                break;
+				                                case -1:
+                                                    a_man.innerHTML = "X";
+					                                a_man.style.color = '#ADFF2F';
+					                                break;
+				                                default:
+					                                break;
+			                                }
+		                                }
+                                    }
+                                    callback();
+                                },
+                                three_in_line:function(role){
+                                    //行上有获胜吗？
+                                    for(var i=0;i<3;i++){
+                                        chess_sum=0;
+                                        for(var j=0;j<3;j++){
+			                                chess_sum += chess_game.game_position[i][j];
+                                        }
+                                        if(chess_sum==role*3){
+                                            return 1;
+                                        }
+                                    }
+                                    //列上有获胜吗？
+                                    for(var j=0;j<3;j++){
+                                        chess_sum=0;
+                                        for(var i=0;i<3;i++){
+                                            chess_sum += chess_game.game_position[i][j];
+                                        }
+                                        if(chess_sum==role*3){
+                                            return 1;
+                                        }
+                                    }
+                                    //斜对角上有获胜吗？
+                                    if(chess_game.game_position[0][0]+chess_game.game_position[1][1]+chess_game.game_position[2][2]==role*3)
+                                    {
+                                        return 1;
+                                    }
+                                    if(chess_game.game_position[0][2]+chess_game.game_position[1][1]+chess_game.game_position[2][0]==role*3)
+                                    {
+                                        return 1;
+
+                                    }
+                                    //如果没获胜,return 0；
+                                    return 0;
+                                },
+                                whose_winner:function(){
+                                    if(chess_game.three_in_line(1)==1){
+                                        chess_game.game_end=true;
+                                        alert("You win!");
+                                    }else if(chess_game.three_in_line(-1)==1){
+                                        chess_game.game_end=true;
+                                        alert("You lose!");
+                                    }
+                                },
+                                computer_step:function(){
+                                    var put_the_chess=false;
+                                    while(put_the_chess==false){
+                                        var i=Math.floor(Math.random()*3);
+                                        var j=Math.floor(Math.random()*3);
+                                        console.log(i);
+                                        console.log(j);
+                                        if(chess_game.game_position[i][j]!=0){
+                                        }else{
+                                            chess_game.game_position[i][j]=-1;
+                                            put_the_chess=true;
+                                        }
+        
+                                    }
+                                }
+                            }
+
+                        })
+                        
+                   }
+            </script>
+
+    </body>
+</html>
